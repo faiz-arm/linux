@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config SND_SOC_ARM_XILINX_PL_SND_CARD
+	tristate "Audio support for Arm/Morello implementation of Xilinx PL sound card"
+	help
+	  Select this option to enable Xilinx PL sound card
+	  support. This enables sound card using xilinx soft IPs
+	  in audio pipeline.
