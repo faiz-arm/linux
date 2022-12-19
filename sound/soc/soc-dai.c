@@ -80,6 +80,7 @@ int snd_soc_dai_set_clkdiv(struct snd_soc_dai *dai,
 {
 	int ret = -EINVAL;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	if (dai->driver->ops &&
 	    dai->driver->ops->set_clkdiv)
 		ret = dai->driver->ops->set_clkdiv(dai, div_id, div);

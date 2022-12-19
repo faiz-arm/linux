@@ -141,6 +141,7 @@ static void xlnx_parse_aes_params(u32 chsts_reg1_val, u32 chsts_reg2_val,
 {
 	u32 padded, srate, bit_depth, status[2];
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	if (chsts_reg1_val & IEC958_AES0_PROFESSIONAL) {
 		status[0] = chsts_reg1_val & 0xff;
 		status[1] = (chsts_reg1_val >> 16) & 0xff;
@@ -256,6 +257,7 @@ static int xlnx_formatter_pcm_reset(void __iomem *mmio_base)
 {
 	u32 val, retries = 0;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	val = readl(mmio_base + XLNX_AUD_CTRL);
 	val |= AUD_CTRL_RESET_MASK;
 	writel(val, mmio_base + XLNX_AUD_CTRL);
@@ -277,6 +279,7 @@ static void xlnx_formatter_disable_irqs(void __iomem *mmio_base, int stream)
 {
 	u32 val;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	val = readl(mmio_base + XLNX_AUD_CTRL);
 	val &= ~AUD_CTRL_IOC_IRQ_MASK;
 	if (stream == SNDRV_PCM_STREAM_CAPTURE)
@@ -292,6 +295,7 @@ static irqreturn_t xlnx_mm2s_irq_handler(int irq, void *arg)
 	struct device *dev = arg;
 	struct xlnx_pcm_drv_data *adata = dev_get_drvdata(dev);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	reg = adata->mmio + XLNX_MM2S_OFFSET + XLNX_AUD_STS;
 	val = readl(reg);
 	if (val & AUD_STS_IOC_IRQ_MASK) {
@@ -311,6 +315,7 @@ static irqreturn_t xlnx_s2mm_irq_handler(int irq, void *arg)
 	struct device *dev = arg;
 	struct xlnx_pcm_drv_data *adata = dev_get_drvdata(dev);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	reg = adata->mmio + XLNX_S2MM_OFFSET + XLNX_AUD_STS;
 	val = readl(reg);
 	if (val & AUD_STS_IOC_IRQ_MASK) {
@@ -328,6 +333,7 @@ static int xlnx_formatter_set_sysclk(struct snd_soc_component *component,
 {
 	struct xlnx_pcm_drv_data *adata = dev_get_drvdata(component->dev);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	adata->sysclk = freq;
 	return 0;
 }
@@ -342,6 +348,7 @@ static int xlnx_formatter_pcm_open(struct snd_soc_component *component,
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct xlnx_pcm_drv_data *adata = dev_get_drvdata(component->dev);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK &&
 	    !adata->mm2s_presence)
 		return -ENODEV;
@@ -431,6 +438,7 @@ static int xlnx_formatter_pcm_close(struct snd_soc_component *component,
 	struct xlnx_pcm_stream_param *stream_data =
 			substream->runtime->private_data;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	ret = xlnx_formatter_pcm_reset(stream_data->mmio);
 	if (ret) {
 		dev_err(component->dev, "audio formatter reset failed\n");
@@ -451,6 +459,7 @@ xlnx_formatter_pcm_pointer(struct snd_soc_component *component,
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct xlnx_pcm_stream_param *stream_data = runtime->private_data;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	pos = readl(stream_data->mmio + XLNX_AUD_XFER_COUNT);
 
 	if (pos >= stream_data->buffer_size)
@@ -470,6 +479,7 @@ static int xlnx_formatter_pcm_hw_params(struct snd_soc_component *component,
 	struct xlnx_pcm_stream_param *stream_data = runtime->private_data;
 	struct xlnx_pcm_drv_data *adata = dev_get_drvdata(component->dev);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	active_ch = params_channels(params);
 	if (active_ch > stream_data->ch_limit)
 		return -EINVAL;
@@ -552,6 +562,7 @@ static int xlnx_formatter_pcm_trigger(struct snd_soc_component *component,
 	struct xlnx_pcm_stream_param *stream_data =
 			substream->runtime->private_data;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
@@ -575,6 +586,7 @@ static int xlnx_formatter_pcm_trigger(struct snd_soc_component *component,
 static int xlnx_formatter_pcm_new(struct snd_soc_component *component,
 				  struct snd_soc_pcm_runtime *rtd)
 {
+	pr_err("%s %d\n", __func__, __LINE__);
 	snd_pcm_set_managed_buffer_all(rtd->pcm,
 			SNDRV_DMA_TYPE_DEV, component->dev,
 			xlnx_pcm_hardware.buffer_bytes_max,
@@ -601,6 +613,7 @@ static int xlnx_formatter_pcm_probe(struct platform_device *pdev)
 	struct xlnx_pcm_drv_data *aud_drv_data;
 	struct device *dev = &pdev->dev;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	aud_drv_data = devm_kzalloc(dev, sizeof(*aud_drv_data), GFP_KERNEL);
 	if (!aud_drv_data)
 		return -ENOMEM;
@@ -726,6 +739,7 @@ static int xlnx_formatter_pcm_remove(struct platform_device *pdev)
 	int ret = 0;
 	struct xlnx_pcm_drv_data *adata = dev_get_drvdata(&pdev->dev);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	if (adata->s2mm_presence)
 		ret = xlnx_formatter_pcm_reset(adata->mmio + XLNX_S2MM_OFFSET);
 

@@ -209,7 +209,7 @@ static int simple_dai_link_of_dpcm(struct asoc_simple_priv *priv,
 	char dai_name[64];
 	int ret;
 
-	dev_dbg(dev, "link_of DPCM (%pOF)\n", np);
+	dev_err(dev, "link_of DPCM (%pOF)\n", np);
 
 	/* For single DAI link & old style of DT node */
 	if (is_top)
@@ -296,7 +296,7 @@ static int simple_dai_link_of(struct asoc_simple_priv *priv,
 	cpu  = np;
 	node = of_get_parent(np);
 
-	dev_dbg(dev, "link_of (%pOF)\n", node);
+	dev_err(dev, "link_of (%pOF)\n", node);
 
 	/* For single DAI link & old style of DT node */
 	if (is_top)

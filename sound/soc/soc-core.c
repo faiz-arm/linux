@@ -333,7 +333,7 @@ struct snd_soc_pcm_runtime
 		if (rtd->dai_link == dai_link)
 			return rtd;
 	}
-	dev_dbg(card->dev, "ASoC: failed to find rtd %s\n", dai_link->name);
+	dev_err(card->dev, "ASoC: failed to find rtd %s\n", dai_link->name);
 	return NULL;
 }
 EXPORT_SYMBOL_GPL(snd_soc_get_pcm_runtime);
@@ -350,7 +350,7 @@ void snd_soc_close_delayed_work(struct snd_soc_pcm_runtime *rtd)
 
 	mutex_lock_nested(&rtd->card->pcm_mutex, rtd->card->pcm_subclass);
 
-	dev_dbg(rtd->dev,
+	dev_err(rtd->dev,
 		"ASoC: pop wq checking: %s status: %s waiting: %s\n",
 		codec_dai->driver->playback.stream_name,
 		snd_soc_dai_stream_active(codec_dai, playback) ?
@@ -616,7 +616,7 @@ int snd_soc_suspend(struct device *dev)
 				 * otherwise fall through.
 				 */
 				if (dapm->idle_bias_off) {
-					dev_dbg(component->dev,
+					dev_err(component->dev,
 						"ASoC: idle_bias_off CODEC on over suspend\n");
 					break;
 				}
@@ -630,7 +630,7 @@ int snd_soc_suspend(struct device *dev)
 				pinctrl_pm_select_sleep_state(component->dev);
 				break;
 			default:
-				dev_dbg(component->dev,
+				dev_err(component->dev,
 					"ASoC: COMPONENT is on over suspend\n");
 				break;
 			}
@@ -659,7 +659,7 @@ static void soc_resume_deferred(struct work_struct *work)
 	 * so userspace apps are blocked from touching us
 	 */
 
-	dev_dbg(card->dev, "ASoC: starting resume work\n");
+	dev_err(card->dev, "ASoC: starting resume work\n");
 
 	/* Bring us up into D2 so that DAPM starts enabling things */
 	snd_power_change_state(card->snd_card, SNDRV_CTL_POWER_D2);
@@ -678,7 +678,7 @@ static void soc_resume_deferred(struct work_struct *work)
 
 	snd_soc_card_resume_post(card);
 
-	dev_dbg(card->dev, "ASoC: resume work completed\n");
+	dev_err(card->dev, "ASoC: resume work completed\n");
 
 	/* Recheck all endpoints too, their state is affected by suspend */
 	dapm_mark_endpoints_dirty(card);
@@ -703,7 +703,7 @@ int snd_soc_resume(struct device *dev)
 		if (snd_soc_component_active(component))
 			pinctrl_pm_select_default_state(component->dev);
 
-	dev_dbg(dev, "ASoC: Scheduling resume work\n");
+	dev_err(dev, "ASoC: Scheduling resume work\n");
 	if (!schedule_work(&card->deferred_resume_work))
 		dev_err(dev, "ASoC: resume work item may be lost\n");
 
@@ -854,7 +854,7 @@ static int soc_dai_link_sanity_check(struct snd_soc_card *card,
 		 * component list.
 		 */
 		if (!soc_find_component(codec)) {
-			dev_dbg(card->dev,
+			dev_err(card->dev,
 				"ASoC: codec component %s not found for link %s\n",
 				codec->name, link->name);
 			return -EPROBE_DEFER;
@@ -879,7 +879,7 @@ static int soc_dai_link_sanity_check(struct snd_soc_card *card,
 		 * component list.
 		 */
 		if (!soc_find_component(platform)) {
-			dev_dbg(card->dev,
+			dev_err(card->dev,
 				"ASoC: platform component %s not found for link %s\n",
 				platform->name, link->name);
 			return -EPROBE_DEFER;
@@ -905,7 +905,7 @@ static int soc_dai_link_sanity_check(struct snd_soc_card *card,
 		 */
 		if ((cpu->of_node || cpu->name) &&
 		    !soc_find_component(cpu)) {
-			dev_dbg(card->dev,
+			dev_err(card->dev,
 				"ASoC: cpu component %s not found for link %s\n",
 				cpu->name, link->name);
 			return -EPROBE_DEFER;
@@ -982,7 +982,7 @@ int snd_soc_add_pcm_runtime(struct snd_soc_card *card,
 	if (dai_link->ignore)
 		return 0;
 
-	dev_dbg(card->dev, "ASoC: binding %s\n", dai_link->name);
+	dev_err(card->dev, "ASoC: binding %s\n", dai_link->name);
 
 	ret = soc_dai_link_sanity_check(card, dai_link);
 	if (ret < 0)
@@ -1059,7 +1059,7 @@ static void snd_soc_runtime_get_dai_fmt(struct snd_soc_pcm_runtime *rtd)
 	 *		 (X)	 (Y)
 	 *
 	 * "until" will be 3 in this case (MAX array size from DAI0 and DAI1)
-	 * Here is dev_dbg() message and comments
+	 * Here is dev_err() message and comments
 	 *
 	 * priority = 1
 	 * DAI0: (pri, fmt) = (1, 000000000000000F) // 1st check (A) DAI1 is not selected
@@ -1079,7 +1079,7 @@ static void snd_soc_runtime_get_dai_fmt(struct snd_soc_pcm_runtime *rtd)
 	until = snd_soc_dai_get_fmt_max_priority(rtd);
 	for (priority = 1; priority <= until; priority++) {
 
-		dev_dbg(dev, "priority = %d\n", priority);
+		dev_err(dev, "priority = %d\n", priority);
 		for_each_rtd_dais(rtd, j, not_used) {
 
 			possible_fmt = ULLONG_MAX;
@@ -1088,7 +1088,7 @@ static void snd_soc_runtime_get_dai_fmt(struct snd_soc_pcm_runtime *rtd)
 
 				pri = (j >= i) ? priority : priority - 1;
 				fmt = snd_soc_dai_get_fmt(dai, pri);
-				dev_dbg(dev, "%s: (pri, fmt) = (%d, %016llX)\n", dai->name, pri, fmt);
+				dev_err(dev, "%s: (pri, fmt) = (%d, %016llX)\n", dai->name, pri, fmt);
 				possible_fmt &= fmt;
 			}
 			if (possible_fmt)
@@ -1098,7 +1098,7 @@ static void snd_soc_runtime_get_dai_fmt(struct snd_soc_pcm_runtime *rtd)
 	/* Not Found */
 	return;
 found:
-	dev_dbg(dev, "found auto selected format: %016llX\n", possible_fmt);
+	dev_err(dev, "found auto selected format: %016llX\n", possible_fmt);
 
 	/*
 	 * convert POSSIBLE_DAIFMT to DAIFMT
@@ -1461,7 +1461,7 @@ static int soc_probe_link_dais(struct snd_soc_card *card)
 	for_each_comp_order(order) {
 		for_each_card_rtds(card, rtd) {
 
-			dev_dbg(card->dev,
+			dev_err(card->dev,
 				"ASoC: probe %s dai link %d late %d\n",
 				card->name, rtd->num, order);
 
@@ -1766,7 +1766,7 @@ match:
 				continue;
 			}
 
-			dev_dbg(card->dev, "info: override BE DAI link %s\n",
+			dev_err(card->dev, "info: override BE DAI link %s\n",
 				card->dai_link[i].name);
 
 			/* override platform component */
@@ -2329,7 +2329,7 @@ void snd_soc_unregister_card(struct snd_soc_card *card)
 	mutex_lock(&client_mutex);
 	snd_soc_unbind_card(card, true);
 	mutex_unlock(&client_mutex);
-	dev_dbg(card->dev, "ASoC: Unregistered card '%s'\n", card->name);
+	dev_err(card->dev, "ASoC: Unregistered card '%s'\n", card->name);
 }
 EXPORT_SYMBOL_GPL(snd_soc_unregister_card);
 
@@ -2397,7 +2397,7 @@ static inline char *fmt_multiple_name(struct device *dev,
 
 void snd_soc_unregister_dai(struct snd_soc_dai *dai)
 {
-	dev_dbg(dai->dev, "ASoC: Unregistered DAI '%s'\n", dai->name);
+	dev_err(dai->dev, "ASoC: Unregistered DAI '%s'\n", dai->name);
 	list_del(&dai->list);
 }
 EXPORT_SYMBOL_GPL(snd_soc_unregister_dai);
@@ -2421,7 +2421,7 @@ struct snd_soc_dai *snd_soc_register_dai(struct snd_soc_component *component,
 	struct device *dev = component->dev;
 	struct snd_soc_dai *dai;
 
-	dev_dbg(dev, "ASoC: dynamically register DAI %s\n", dev_name(dev));
+	dev_err(dev, "ASoC: dynamically register DAI %s\n", dev_name(dev));
 
 	lockdep_assert_held(&client_mutex);
 
@@ -2458,7 +2458,7 @@ struct snd_soc_dai *snd_soc_register_dai(struct snd_soc_component *component,
 	list_add_tail(&dai->list, &component->dai_list);
 	component->num_dai++;
 
-	dev_dbg(dev, "ASoC: Registered DAI '%s'\n", dai->name);
+	dev_err(dev, "ASoC: Registered DAI '%s'\n", dai->name);
 	return dai;
 }
 EXPORT_SYMBOL_GPL(snd_soc_register_dai);

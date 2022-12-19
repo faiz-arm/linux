@@ -119,7 +119,7 @@ int asoc_simple_parse_daifmt(struct device *dev,
 		 * sound node level, revert back to legacy DT parsing and
 		 * take the settings from codec node.
 		 */
-		dev_dbg(dev, "Revert to legacy daifmt parsing\n");
+		dev_err(dev, "Revert to legacy daifmt parsing\n");
 
 		daifmt |= snd_soc_daifmt_parse_clock_provider_as_flag(codec, NULL);
 	} else {
@@ -463,6 +463,7 @@ int asoc_simple_hw_params(struct snd_pcm_substream *substream,
 		struct snd_soc_component *component;
 		mclk = params_rate(params) * mclk_fs;
 
+		pr_err("%s %d mclk:%u\n", __func__, __LINE__, mclk);
 		for_each_prop_dai_codec(props, i, pdai) {
 			ret = asoc_simple_set_clk_rate(rtd->dev, pdai, mclk);
 			if (ret < 0)
@@ -837,7 +838,7 @@ int asoc_simple_init_priv(struct asoc_simple_priv *priv,
 			return -ENOMEM;
 	}
 
-	dev_dbg(dev, "link %d, dais %d, ccnf %d\n",
+	dev_err(dev, "link %d, dais %d, ccnf %d\n",
 		li->link, dai_num, cnf_num);
 
 	/* dummy CPU/Codec */

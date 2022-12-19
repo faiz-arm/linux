@@ -68,7 +68,8 @@ static int xlnx_spdif_card_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct pl_card_data *prv = snd_soc_card_get_drvdata(rtd->card);
 	u32 sample_rate = params_rate(params);
-
+	
+	pr_err("%s %d\n", __func__, __LINE__);
 	/* mclk must be >=1024 * sampleing rate */
 	prv->mclk_val = 1024 * sample_rate;
 	prv->mclk_ratio = 1024;
@@ -82,6 +83,7 @@ static int xlnx_sdi_card_hw_params(struct snd_pcm_substream *substream,
 	struct pl_card_data *prv = snd_soc_card_get_drvdata(rtd->card);
 	u32 sample_rate = params_rate(params);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	prv->mclk_val = prv->mclk_ratio * sample_rate;
 	return clk_set_rate(prv->mclk, prv->mclk_val);
 }
@@ -93,6 +95,7 @@ static int xlnx_hdmi_card_hw_params(struct snd_pcm_substream *substream,
 	struct pl_card_data *prv = snd_soc_card_get_drvdata(rtd->card);
 	u32 sample_rate = params_rate(params);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	switch (sample_rate) {
 	case 32000:
 	case 44100:
@@ -170,6 +173,8 @@ static int xlnx_i2s_card_hw_params(struct snd_pcm_substream *substream,
 
 	prv->mclk_val = prv->mclk_ratio * sample_rate;
 	clk_div = DIV_ROUND_UP(prv->mclk_ratio, 2 * ch * data_width);
+	pr_err("%s %d sample_rate:%u mclk_val:%u clk_div:%u\n",
+	       __func__, __LINE__, sample_rate, prv->mclk_val, clk_div);
 	ret = snd_soc_dai_set_clkdiv(cpu_dai, 0, clk_div);
 	if (ret)
 		return ret;
@@ -286,6 +291,7 @@ static int find_link(struct device_node *node, int direction)
 
 	size = ARRAY_SIZE(dev_compat[direction]);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	for (i = 0; i < size; i++) {
 		ret = of_device_is_compatible(node, link_names[i]);
 		if (ret)
@@ -304,6 +310,7 @@ static int xlnx_snd_probe(struct platform_device *pdev)
 	struct pl_card_data *prv;
 	struct platform_device *iface_pdev;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	struct snd_soc_card *card;
 	struct device_node **node = pdev->dev.platform_data;
 
@@ -343,9 +350,9 @@ static int xlnx_snd_probe(struct platform_device *pdev)
 	card->num_links = 0;
 	for (i = start_count; i < (start_count + max_links); i++) {
 		struct device_node *pnode = of_parse_phandle(node[i],
-										"xlnx,snd-pcm", 0);
+							     "xlnx,snd-pcm", 0);
 		struct device_node *pcodec = of_parse_phandle(node[i],
-										"custom,codec", 0);
+							      "custom,codec", 0);
 
 		if (!pnode) {
 			dev_err(card->dev, "platform node not found\n");
@@ -478,6 +485,7 @@ static int xlnx_snd_remove(struct platform_device *pdev)
 {
 	struct pl_card_data *pdata = dev_get_drvdata(&pdev->dev);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	ida_simple_remove(&xlnx_snd_card_dev, pdata->xlnx_snd_dev_id);
 	return 0;
 }

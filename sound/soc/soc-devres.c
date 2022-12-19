@@ -108,6 +108,20 @@ int devm_snd_soc_register_card(struct device *dev, struct snd_soc_card *card)
 	if (!ptr)
 		return -ENOMEM;
 
+	pr_err("card->name:%s\n", card->name);
+	pr_err("card->dai_link->name:%s\n", card->dai_link->name);
+	if (card->dai_link->cpus) {
+		pr_err("card->dai_link->cpus->name:%s\n", card->dai_link->cpus->name);
+		pr_err("card->dai_link->cpus->of_node:%p\n", card->dai_link->cpus->of_node);
+	}	
+	if (card->dai_link->codecs) {
+		pr_err("card->dai_link->codecs->name:%s\n", card->dai_link->codecs->name);
+		pr_err("card->dai_link->codecs->of_node:%p\n", card->dai_link->codecs->of_node);
+	}	
+	if (card->dai_link->platforms) {
+		pr_err("card->dai_link->platforms->name:%s\n", card->dai_link->platforms->name);
+		pr_err("card->dai_link->platforms->of_node:%p\n", card->dai_link->platforms->of_node);
+	}	
 	ret = snd_soc_register_card(card);
 	if (ret == 0) {
 		*ptr = card;

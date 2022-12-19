@@ -367,7 +367,7 @@ int dpcm_dapm_stream_event(struct snd_soc_pcm_runtime *fe, int dir,
 
 		struct snd_soc_pcm_runtime *be = dpcm->be;
 
-		dev_dbg(be->dev, "ASoC: BE %s event %d dir %d\n",
+		dev_err(be->dev, "ASoC: BE %s event %d dir %d\n",
 				be->dai_link->name, event, dir);
 
 		if ((event == SND_SOC_DAPM_STREAM_STOP) &&
@@ -408,7 +408,7 @@ static int soc_pcm_apply_symmetry(struct snd_pcm_substream *substream,
 #define __soc_pcm_apply_symmetry(name, NAME)				\
 	if (soc_dai->name && (soc_dai->driver->symmetric_##name ||	\
 			      rtd->dai_link->symmetric_##name)) {	\
-		dev_dbg(soc_dai->dev, "ASoC: Symmetry forces %s to %d\n",\
+		dev_err(soc_dai->dev, "ASoC: Symmetry forces %s to %d\n",\
 			#name, soc_dai->name);				\
 									\
 		ret = snd_pcm_hw_constraint_single(substream->runtime,	\
@@ -772,12 +772,12 @@ static int soc_hw_sanity_check(struct snd_pcm_substream *substream)
 	     hw->channels_min  >  hw->channels_max)
 		goto config_err;
 
-	dev_dbg(dev, "ASoC: %s <-> %s info:\n",		name_codec,
+	dev_err(dev, "ASoC: %s <-> %s info:\n",		name_codec,
 							name_cpu);
-	dev_dbg(dev, "ASoC: rate mask 0x%x\n",		hw->rates);
-	dev_dbg(dev, "ASoC: ch   min %d max %d\n",	hw->channels_min,
+	dev_err(dev, "ASoC: rate mask 0x%x\n",		hw->rates);
+	dev_err(dev, "ASoC: ch   min %d max %d\n",	hw->channels_min,
 							hw->channels_max);
-	dev_dbg(dev, "ASoC: rate min %d max %d\n",	hw->rate_min,
+	dev_err(dev, "ASoC: rate min %d max %d\n",	hw->rate_min,
 							hw->rate_max);
 
 	return 0;
@@ -1051,6 +1051,7 @@ static int __soc_pcm_hw_params(struct snd_soc_pcm_runtime *rtd,
 
 		soc_pcm_set_dai_params(codec_dai, &codec_params);
 		snd_soc_dapm_update_dai(substream, &codec_params, codec_dai);
+
 	}
 
 	for_each_rtd_cpu_dais(rtd, i, cpu_dai) {
@@ -1209,7 +1210,7 @@ static int dpcm_be_connect(struct snd_soc_pcm_runtime *fe,
 		return -EINVAL;
 	}
 	if (fe_substream->pcm->nonatomic && !be_substream->pcm->nonatomic) {
-		dev_dbg(be->dev, "FE is nonatomic but BE is not, forcing BE as nonatomic\n");
+		dev_err(be->dev, "FE is nonatomic but BE is not, forcing BE as nonatomic\n");
 		be_substream->pcm->nonatomic = 1;
 	}
 
@@ -1226,7 +1227,7 @@ static int dpcm_be_connect(struct snd_soc_pcm_runtime *fe,
 	list_add(&dpcm->list_fe, &be->dpcm[stream].fe_clients);
 	snd_soc_dpcm_stream_unlock_irq(fe, stream);
 
-	dev_dbg(fe->dev, "connected new DPCM %s path %s %s %s\n",
+	dev_err(fe->dev, "connected new DPCM %s path %s %s %s\n",
 			stream ? "capture" : "playback",  fe->dai_link->name,
 			stream ? "<-" : "->", be->dai_link->name);
 
@@ -1254,7 +1255,7 @@ static void dpcm_be_reparent(struct snd_soc_pcm_runtime *fe,
 		if (dpcm->fe == fe)
 			continue;
 
-		dev_dbg(fe->dev, "reparent %s path %s %s %s\n",
+		dev_err(fe->dev, "reparent %s path %s %s %s\n",
 			stream ? "capture" : "playback",
 			dpcm->fe->dai_link->name,
 			stream ? "<-" : "->", dpcm->be->dai_link->name);
@@ -1275,14 +1276,14 @@ void dpcm_be_disconnect(struct snd_soc_pcm_runtime *fe, int stream)
 
 	snd_soc_dpcm_stream_lock_irq(fe, stream);
 	for_each_dpcm_be_safe(fe, stream, dpcm, d) {
-		dev_dbg(fe->dev, "ASoC: BE %s disconnect check for %s\n",
+		dev_err(fe->dev, "ASoC: BE %s disconnect check for %s\n",
 				stream ? "capture" : "playback",
 				dpcm->be->dai_link->name);
 
 		if (dpcm->state != SND_SOC_DPCM_LINK_STATE_FREE)
 			continue;
 
-		dev_dbg(fe->dev, "freed DSP %s path %s %s %s\n",
+		dev_err(fe->dev, "freed DSP %s path %s %s %s\n",
 			stream ? "capture" : "playback", fe->dai_link->name,
 			stream ? "<-" : "->", dpcm->be->dai_link->name);
 
@@ -1312,7 +1313,7 @@ static struct snd_soc_pcm_runtime *dpcm_get_be(struct snd_soc_card *card,
 	struct snd_soc_dai *dai;
 	int i;
 
-	dev_dbg(card->dev, "ASoC: find BE for widget %s\n", widget->name);
+	dev_err(card->dev, "ASoC: find BE for widget %s\n", widget->name);
 
 	for_each_card_rtds(card, be) {
 
@@ -1325,7 +1326,7 @@ static struct snd_soc_pcm_runtime *dpcm_get_be(struct snd_soc_card *card,
 		for_each_rtd_dais(be, i, dai) {
 			w = snd_soc_dai_get_widget(dai, stream);
 
-			dev_dbg(card->dev, "ASoC: try BE : %s\n",
+			dev_err(card->dev, "ASoC: try BE : %s\n",
 				w ? w->name : "(not set)");
 
 			if (w == widget)
@@ -1388,10 +1389,10 @@ int dpcm_path_get(struct snd_soc_pcm_runtime *fe,
 				NULL : dpcm_end_walk_at_be);
 
 	if (paths > 0)
-		dev_dbg(fe->dev, "ASoC: found %d audio %s paths\n", paths,
+		dev_err(fe->dev, "ASoC: found %d audio %s paths\n", paths,
 			stream ? "capture" : "playback");
 	else if (paths == 0)
-		dev_dbg(fe->dev, "ASoC: %s no valid %s path\n", fe->dai_link->name,
+		dev_err(fe->dev, "ASoC: %s no valid %s path\n", fe->dai_link->name,
 			 stream ? "capture" : "playback");
 
 	return paths;
@@ -1434,7 +1435,7 @@ static int dpcm_prune_paths(struct snd_soc_pcm_runtime *fe, int stream,
 		if (dpcm_be_is_active(dpcm, stream, *list_))
 			continue;
 
-		dev_dbg(fe->dev, "ASoC: pruning %s BE %s for %s\n",
+		dev_err(fe->dev, "ASoC: pruning %s BE %s for %s\n",
 			stream ? "capture" : "playback",
 			dpcm->be->dai_link->name, fe->dai_link->name);
 		dpcm->state = SND_SOC_DPCM_LINK_STATE_FREE;
@@ -1442,7 +1443,7 @@ static int dpcm_prune_paths(struct snd_soc_pcm_runtime *fe, int stream,
 		prune++;
 	}
 
-	dev_dbg(fe->dev, "ASoC: found %d old BE paths for pruning\n", prune);
+	dev_err(fe->dev, "ASoC: found %d old BE paths for pruning\n", prune);
 	return prune;
 }
 
@@ -1478,7 +1479,7 @@ static int dpcm_add_paths(struct snd_soc_pcm_runtime *fe, int stream,
 		/* is there a valid BE rtd for this widget */
 		be = dpcm_get_be(card, widget, stream);
 		if (!be) {
-			dev_dbg(fe->dev, "ASoC: no BE found for %s\n",
+			dev_err(fe->dev, "ASoC: no BE found for %s\n",
 				widget->name);
 			continue;
 		}
@@ -1507,7 +1508,7 @@ static int dpcm_add_paths(struct snd_soc_pcm_runtime *fe, int stream,
 		new++;
 	}
 
-	dev_dbg(fe->dev, "ASoC: found %d new BE paths\n", new);
+	dev_err(fe->dev, "ASoC: found %d new BE paths\n", new);
 	return new;
 }
 
@@ -1614,7 +1615,7 @@ int dpcm_be_dai_startup(struct snd_soc_pcm_runtime *fe, int stream)
 		    (be->dpcm[stream].state != SND_SOC_DPCM_STATE_CLOSE))
 			continue;
 
-		dev_dbg(be->dev, "ASoC: open %s BE %s\n",
+		dev_err(be->dev, "ASoC: open %s BE %s\n",
 			stream ? "capture" : "playback", be->dai_link->name);
 
 		be_substream->runtime = be->dpcm[stream].runtime;
@@ -1853,7 +1854,7 @@ static int dpcm_fe_dai_startup(struct snd_pcm_substream *fe_substream)
 	if (ret < 0)
 		goto be_err;
 
-	dev_dbg(fe->dev, "ASoC: open FE %s\n", fe->dai_link->name);
+	dev_err(fe->dev, "ASoC: open FE %s\n", fe->dai_link->name);
 
 	/* start the DAI frontend */
 	ret = __soc_pcm_open(fe, fe_substream);
@@ -1891,7 +1892,7 @@ static int dpcm_fe_dai_shutdown(struct snd_pcm_substream *substream)
 	/* shutdown the BEs */
 	dpcm_be_dai_shutdown(fe, stream);
 
-	dev_dbg(fe->dev, "ASoC: close FE %s\n", fe->dai_link->name);
+	dev_err(fe->dev, "ASoC: close FE %s\n", fe->dai_link->name);
 
 	/* now shutdown the frontend */
 	__soc_pcm_close(fe, substream);
@@ -1936,7 +1937,7 @@ void dpcm_be_dai_hw_free(struct snd_soc_pcm_runtime *fe, int stream)
 		    (be->dpcm[stream].state != SND_SOC_DPCM_STATE_SUSPEND))
 			continue;
 
-		dev_dbg(be->dev, "ASoC: hw_free BE %s\n",
+		dev_err(be->dev, "ASoC: hw_free BE %s\n",
 			be->dai_link->name);
 
 		__soc_pcm_hw_free(be, be_substream);
@@ -1953,7 +1954,7 @@ static int dpcm_fe_dai_hw_free(struct snd_pcm_substream *substream)
 	snd_soc_dpcm_mutex_lock(fe);
 	dpcm_set_fe_update_state(fe, stream, SND_SOC_DPCM_UPDATE_FE);
 
-	dev_dbg(fe->dev, "ASoC: hw_free FE %s\n", fe->dai_link->name);
+	dev_err(fe->dev, "ASoC: hw_free FE %s\n", fe->dai_link->name);
 
 	/* call hw_free on the frontend */
 	soc_pcm_hw_clean(fe, substream, 0);
@@ -2006,7 +2007,7 @@ int dpcm_be_dai_hw_params(struct snd_soc_pcm_runtime *fe, int stream)
 		    (be->dpcm[stream].state != SND_SOC_DPCM_STATE_HW_FREE))
 			continue;
 
-		dev_dbg(be->dev, "ASoC: hw_params BE %s\n",
+		dev_err(be->dev, "ASoC: hw_params BE %s\n",
 			be->dai_link->name);
 
 		ret = __soc_pcm_hw_params(be, be_substream, &dpcm->hw_params);
@@ -2018,7 +2019,7 @@ int dpcm_be_dai_hw_params(struct snd_soc_pcm_runtime *fe, int stream)
 	return 0;
 
 unwind:
-	dev_dbg(fe->dev, "ASoC: %s() failed at %s (%d)\n",
+	dev_err(fe->dev, "ASoC: %s() failed at %s (%d)\n",
 		__func__, be->dai_link->name, ret);
 
 	/* disable any enabled and non active backends */
@@ -2060,7 +2061,7 @@ static int dpcm_fe_dai_hw_params(struct snd_pcm_substream *substream,
 	if (ret < 0)
 		goto out;
 
-	dev_dbg(fe->dev, "ASoC: hw_params FE %s rate %d chan %x fmt %d\n",
+	dev_err(fe->dev, "ASoC: hw_params FE %s rate %d chan %x fmt %d\n",
 			fe->dai_link->name, params_rate(params),
 			params_channels(params), params_format(params));
 
@@ -2099,7 +2100,7 @@ int dpcm_be_dai_trigger(struct snd_soc_pcm_runtime *fe, int stream,
 		if (!snd_soc_dpcm_be_can_update(fe, be, stream))
 			goto next;
 
-		dev_dbg(be->dev, "ASoC: trigger BE %s cmd %d\n",
+		dev_err(be->dev, "ASoC: trigger BE %s cmd %d\n",
 			be->dai_link->name, cmd);
 
 		switch (cmd) {
@@ -2256,7 +2257,7 @@ static int dpcm_dai_trigger_fe_be(struct snd_pcm_substream *substream,
 
 	/* call trigger on the frontend before the backend. */
 	if (fe_first) {
-		dev_dbg(fe->dev, "ASoC: pre trigger FE %s cmd %d\n",
+		dev_err(fe->dev, "ASoC: pre trigger FE %s cmd %d\n",
 			fe->dai_link->name, cmd);
 
 		ret = soc_pcm_trigger(substream, cmd);
@@ -2272,7 +2273,7 @@ static int dpcm_dai_trigger_fe_be(struct snd_pcm_substream *substream,
 	if (ret < 0)
 		return ret;
 
-	dev_dbg(fe->dev, "ASoC: post trigger FE %s cmd %d\n",
+	dev_err(fe->dev, "ASoC: post trigger FE %s cmd %d\n",
 		fe->dai_link->name, cmd);
 
 	ret = soc_pcm_trigger(substream, cmd);
@@ -2329,7 +2330,7 @@ static int dpcm_fe_dai_do_trigger(struct snd_pcm_substream *substream, int cmd)
 	case SND_SOC_DPCM_TRIGGER_BESPOKE:
 		/* bespoke trigger() - handles both FE and BEs */
 
-		dev_dbg(fe->dev, "ASoC: bespoke trigger FE %s cmd %d\n",
+		dev_err(fe->dev, "ASoC: bespoke trigger FE %s cmd %d\n",
 				fe->dai_link->name, cmd);
 
 		ret = snd_soc_pcm_dai_bespoke_trigger(substream, cmd);
@@ -2405,7 +2406,7 @@ int dpcm_be_dai_prepare(struct snd_soc_pcm_runtime *fe, int stream)
 		    (be->dpcm[stream].state != SND_SOC_DPCM_STATE_PAUSED))
 			continue;
 
-		dev_dbg(be->dev, "ASoC: prepare BE %s\n",
+		dev_err(be->dev, "ASoC: prepare BE %s\n",
 			be->dai_link->name);
 
 		ret = __soc_pcm_prepare(be, be_substream);
@@ -2425,7 +2426,7 @@ static int dpcm_fe_dai_prepare(struct snd_pcm_substream *substream)
 
 	snd_soc_dpcm_mutex_lock(fe);
 
-	dev_dbg(fe->dev, "ASoC: prepare FE %s\n", fe->dai_link->name);
+	dev_err(fe->dev, "ASoC: prepare FE %s\n", fe->dai_link->name);
 
 	dpcm_set_fe_update_state(fe, stream, SND_SOC_DPCM_UPDATE_FE);
 
@@ -2462,17 +2463,17 @@ static int dpcm_run_update_shutdown(struct snd_soc_pcm_runtime *fe, int stream)
 	enum snd_soc_dpcm_trigger trigger = fe->dai_link->trigger[stream];
 	int err;
 
-	dev_dbg(fe->dev, "ASoC: runtime %s close on FE %s\n",
+	dev_err(fe->dev, "ASoC: runtime %s close on FE %s\n",
 			stream ? "capture" : "playback", fe->dai_link->name);
 
 	if (trigger == SND_SOC_DPCM_TRIGGER_BESPOKE) {
 		/* call bespoke trigger - FE takes care of all BE triggers */
-		dev_dbg(fe->dev, "ASoC: bespoke trigger FE %s cmd stop\n",
+		dev_err(fe->dev, "ASoC: bespoke trigger FE %s cmd stop\n",
 				fe->dai_link->name);
 
 		err = snd_soc_pcm_dai_bespoke_trigger(substream, SNDRV_PCM_TRIGGER_STOP);
 	} else {
-		dev_dbg(fe->dev, "ASoC: trigger FE %s cmd stop\n",
+		dev_err(fe->dev, "ASoC: trigger FE %s cmd stop\n",
 			fe->dai_link->name);
 
 		err = dpcm_be_dai_trigger(fe, stream, SNDRV_PCM_TRIGGER_STOP);
@@ -2496,7 +2497,7 @@ static int dpcm_run_update_startup(struct snd_soc_pcm_runtime *fe, int stream)
 	enum snd_soc_dpcm_trigger trigger = fe->dai_link->trigger[stream];
 	int ret = 0;
 
-	dev_dbg(fe->dev, "ASoC: runtime %s open on FE %s\n",
+	dev_err(fe->dev, "ASoC: runtime %s open on FE %s\n",
 			stream ? "capture" : "playback", fe->dai_link->name);
 
 	/* Only start the BE if the FE is ready */
@@ -2539,14 +2540,14 @@ static int dpcm_run_update_startup(struct snd_soc_pcm_runtime *fe, int stream)
 
 	if (trigger == SND_SOC_DPCM_TRIGGER_BESPOKE) {
 		/* call trigger on the frontend - FE takes care of all BE triggers */
-		dev_dbg(fe->dev, "ASoC: bespoke trigger FE %s cmd start\n",
+		dev_err(fe->dev, "ASoC: bespoke trigger FE %s cmd start\n",
 				fe->dai_link->name);
 
 		ret = snd_soc_pcm_dai_bespoke_trigger(substream, SNDRV_PCM_TRIGGER_START);
 		if (ret < 0)
 			goto hw_free;
 	} else {
-		dev_dbg(fe->dev, "ASoC: trigger FE %s cmd start\n",
+		dev_err(fe->dev, "ASoC: trigger FE %s cmd start\n",
 			fe->dai_link->name);
 
 		ret = dpcm_be_dai_trigger(fe, stream,
@@ -2598,7 +2599,7 @@ static int soc_dpcm_fe_runtime_update(struct snd_soc_pcm_runtime *fe, int new)
 		return 0;
 
 	/* DAPM sync will call this to update DSP paths */
-	dev_dbg(fe->dev, "ASoC: DPCM %s runtime update for FE %s\n",
+	dev_err(fe->dev, "ASoC: DPCM %s runtime update for FE %s\n",
 		new ? "new" : "old", fe->dai_link->name);
 
 	for_each_pcm_streams(stream) {
@@ -2852,7 +2853,7 @@ static int soc_create_pcm(struct snd_pcm **pcm,
 			new_name, rtd->dai_link->name, ret);
 		return ret;
 	}
-	dev_dbg(rtd->card->dev, "ASoC: registered pcm #%d %s\n",num, new_name);
+	dev_err(rtd->card->dev, "ASoC: registered pcm #%d %s\n",num, new_name);
 
 	return 0;
 }
@@ -2942,7 +2943,7 @@ int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
 	if (ret < 0)
 		return ret;
 out:
-	dev_dbg(rtd->card->dev, "%s <-> %s mapping ok\n",
+	dev_err(rtd->card->dev, "%s <-> %s mapping ok\n",
 		soc_codec_dai_name(rtd), soc_cpu_dai_name(rtd));
 	return ret;
 }

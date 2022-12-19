@@ -43,6 +43,7 @@ static int xlnx_i2s_set_sclkout_div(struct snd_soc_dai *cpu_dai,
 	if (!div || (div & ~I2S_I2STIM_VALID_MASK))
 		return -EINVAL;
 
+	pr_err("%s %d div:%d\n", __func__, __LINE__, div);
 	drv_data->sysclk = 0;
 
 	writel(div, drv_data->base + I2S_I2STIM_OFFSET);
@@ -55,6 +56,7 @@ static int xlnx_i2s_set_sysclk(struct snd_soc_dai *dai,
 {
 	struct xlnx_i2s_drv_data *drv_data = snd_soc_dai_get_drvdata(dai);
 
+	pr_err("%s %d freq:%u\n", __func__, __LINE__, freq);
 	drv_data->sysclk = freq;
 	if (freq) {
 		unsigned int bits_per_sample;
@@ -79,6 +81,7 @@ static int xlnx_i2s_startup(struct snd_pcm_substream *substream,
 {
 	struct xlnx_i2s_drv_data *drv_data = snd_soc_dai_get_drvdata(dai);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	if (drv_data->sysclk)
 		return snd_pcm_hw_constraint_ratnums(substream->runtime, 0,
 						     SNDRV_PCM_HW_PARAM_RATE,
@@ -94,6 +97,7 @@ static int xlnx_i2s_hw_params(struct snd_pcm_substream *substream,
 	u32 reg_off, chan_id;
 	struct xlnx_i2s_drv_data *drv_data = snd_soc_dai_get_drvdata(i2s_dai);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	if (drv_data->sysclk) {
 		unsigned int bits_per_sample, sclk, sclk_div;
 
@@ -130,6 +134,7 @@ static int xlnx_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
 {
 	struct xlnx_i2s_drv_data *drv_data = snd_soc_dai_get_drvdata(i2s_dai);
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
 	case SNDRV_PCM_TRIGGER_RESUME:
@@ -176,6 +181,7 @@ static int xlnx_i2s_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct device_node *node = dev->of_node;
 
+	pr_err("%s %d\n", __func__, __LINE__);
 	drv_data = devm_kzalloc(&pdev->dev, sizeof(*drv_data), GFP_KERNEL);
 	if (!drv_data)
 		return -ENOMEM;

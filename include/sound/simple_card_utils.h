@@ -196,7 +196,7 @@ int asoc_simple_remove(struct platform_device *pdev);
 int asoc_graph_card_probe(struct snd_soc_card *card);
 int asoc_graph_is_ports0(struct device_node *port);
 
-#ifdef DEBUG
+#if 1
 static inline void asoc_simple_debug_dai(struct asoc_simple_priv *priv,
 					 char *name,
 					 struct asoc_simple_dai *dai)
@@ -208,24 +208,24 @@ static inline void asoc_simple_debug_dai(struct asoc_simple_priv *priv,
 		return;
 
 	if (dai->name)
-		dev_dbg(dev, "%s dai name = %s\n",
+		dev_err(dev, "%s dai name = %s\n",
 			name, dai->name);
 
 	if (dai->slots)
-		dev_dbg(dev, "%s slots = %d\n", name, dai->slots);
+		dev_err(dev, "%s slots = %d\n", name, dai->slots);
 	if (dai->slot_width)
-		dev_dbg(dev, "%s slot width = %d\n", name, dai->slot_width);
+		dev_err(dev, "%s slot width = %d\n", name, dai->slot_width);
 	if (dai->tx_slot_mask)
-		dev_dbg(dev, "%s tx slot mask = %d\n", name, dai->tx_slot_mask);
+		dev_err(dev, "%s tx slot mask = %d\n", name, dai->tx_slot_mask);
 	if (dai->rx_slot_mask)
-		dev_dbg(dev, "%s rx slot mask = %d\n", name, dai->rx_slot_mask);
+		dev_err(dev, "%s rx slot mask = %d\n", name, dai->rx_slot_mask);
 	if (dai->clk)
-		dev_dbg(dev, "%s clk %luHz\n", name, clk_get_rate(dai->clk));
+		dev_err(dev, "%s clk %luHz\n", name, clk_get_rate(dai->clk));
 	if (dai->sysclk)
-		dev_dbg(dev, "%s sysclk = %dHz\n",
+		dev_err(dev, "%s sysclk = %dHz\n",
 			name, dai->sysclk);
 	if (dai->clk || dai->sysclk)
-		dev_dbg(dev, "%s direction = %s\n",
+		dev_err(dev, "%s direction = %s\n",
 			name, dai->clk_direction ? "OUT" : "IN");
 }
 
@@ -237,7 +237,7 @@ static inline void asoc_simple_debug_info(struct asoc_simple_priv *priv)
 	int i;
 
 	if (card->name)
-		dev_dbg(dev, "Card Name: %s\n", card->name);
+		dev_err(dev, "Card Name: %s\n", card->name);
 
 	for (i = 0; i < card->num_links; i++) {
 		struct simple_dai_props *props = simple_priv_to_props(priv, i);
@@ -246,28 +246,28 @@ static inline void asoc_simple_debug_info(struct asoc_simple_priv *priv)
 		struct snd_soc_codec_conf *cnf;
 		int j;
 
-		dev_dbg(dev, "DAI%d\n", i);
+		dev_err(dev, "DAI%d\n", i);
 
-		dev_dbg(dev, "cpu num = %d\n", link->num_cpus);
+		dev_err(dev, "cpu num = %d\n", link->num_cpus);
 		for_each_prop_dai_cpu(props, j, dai)
 			asoc_simple_debug_dai(priv, "cpu", dai);
-		dev_dbg(dev, "codec num = %d\n", link->num_codecs);
+		dev_err(dev, "codec num = %d\n", link->num_codecs);
 		for_each_prop_dai_codec(props, j, dai)
 			asoc_simple_debug_dai(priv, "codec", dai);
 
 		if (link->name)
-			dev_dbg(dev, "dai name = %s\n", link->name);
+			dev_err(dev, "dai name = %s\n", link->name);
 		if (link->dai_fmt)
-			dev_dbg(dev, "dai format = %04x\n", link->dai_fmt);
+			dev_err(dev, "dai format = %04x\n", link->dai_fmt);
 		if (props->adata.convert_rate)
-			dev_dbg(dev, "convert_rate = %d\n", props->adata.convert_rate);
+			dev_err(dev, "convert_rate = %d\n", props->adata.convert_rate);
 		if (props->adata.convert_channels)
-			dev_dbg(dev, "convert_channels = %d\n", props->adata.convert_channels);
+			dev_err(dev, "convert_channels = %d\n", props->adata.convert_channels);
 		for_each_prop_codec_conf(props, j, cnf)
 			if (cnf->name_prefix)
-				dev_dbg(dev, "name prefix = %s\n", cnf->name_prefix);
+				dev_err(dev, "name prefix = %s\n", cnf->name_prefix);
 		if (props->mclk_fs)
-			dev_dbg(dev, "mclk-fs = %d\n", props->mclk_fs);
+			dev_err(dev, "mclk-fs = %d\n", props->mclk_fs);
 	}
 }
 #else
