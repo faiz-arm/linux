@@ -453,7 +453,7 @@ int asoc_simple_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *sdai;
 	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(rtd->card);
 	struct simple_dai_props *props = simple_priv_to_props(priv, rtd->num);
-	unsigned int mclk, mclk_fs = 0;
+	unsigned int mclk, mclk_fs = 0, sample_rate, ch, data_width, clk_div;
 	int i, ret;
 
 	if (props->mclk_fs)
@@ -461,9 +461,14 @@ int asoc_simple_hw_params(struct snd_pcm_substream *substream,
 
 	if (mclk_fs) {
 		struct snd_soc_component *component;
-		mclk = params_rate(params) * mclk_fs;
-
-		pr_err("%s %d mclk:%u\n", __func__, __LINE__, mclk);
+		sample_rate = params_rate(params);
+		mclk = sample_rate * mclk_fs;
+		ch = params_channels(params);
+		data_width = params_width(params);
+		
+		clk_div = DIV_ROUND_UP(mclk_fs, 2 * ch * data_width);
+		pr_err("%s %d sample_rate:%u mclk_val:%u clk_div:%u\n",
+                       __func__, __LINE__, sample_rate, mclk, clk_div);
 		for_each_prop_dai_codec(props, i, pdai) {
 			ret = asoc_simple_set_clk_rate(rtd->dev, pdai, mclk);
 			if (ret < 0)
@@ -496,6 +501,10 @@ int asoc_simple_hw_params(struct snd_pcm_substream *substream,
 		for_each_rtd_cpu_dais(rtd, i, sdai) {
 			ret = snd_soc_dai_set_sysclk(sdai, 0, mclk, SND_SOC_CLOCK_OUT);
 			if (ret && ret != -ENOTSUPP)
+				return ret;
+
+			ret = snd_soc_dai_set_clkdiv(sdai, 0, clk_div);
+			if (ret)
 				return ret;
 		}
 	}
