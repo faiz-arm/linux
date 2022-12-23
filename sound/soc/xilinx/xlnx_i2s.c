@@ -35,6 +35,12 @@ struct xlnx_i2s_drv_data {
 	struct snd_pcm_hw_constraint_ratnums rate_constraints;
 };
 
+
+static inline void writel_print(u32 value, volatile void __iomem *addr) {
+	pr_err("%08x:%08x\n", addr, value);
+	writel(value, addr);
+}
+
 static int xlnx_i2s_set_sclkout_div(struct snd_soc_dai *cpu_dai,
 				    int div_id, int div)
 {
@@ -46,7 +52,7 @@ static int xlnx_i2s_set_sclkout_div(struct snd_soc_dai *cpu_dai,
 	pr_err("%s %d div:%d\n", __func__, __LINE__, div);
 	drv_data->sysclk = 0;
 
-	writel(div, drv_data->base + I2S_I2STIM_OFFSET);
+	writel_print(div, drv_data->base + I2S_I2STIM_OFFSET);
 
 	return 0;
 }
@@ -115,14 +121,14 @@ static int xlnx_i2s_hw_params(struct snd_pcm_substream *substream,
 				 drv_data->sysclk, sclk);
 			return -EINVAL;
 		}
-		writel(sclk_div, drv_data->base + I2S_I2STIM_OFFSET);
+		writel_print(sclk_div, drv_data->base + I2S_I2STIM_OFFSET);
 	}
 
 	chan_id = params_channels(params) / 2;
 
 	while (chan_id > 0) {
 		reg_off = I2S_CH0_OFFSET + ((chan_id - 1) * 4);
-		writel(chan_id, drv_data->base + reg_off);
+		writel_print(chan_id, drv_data->base + reg_off);
 		chan_id--;
 	}
 
@@ -139,12 +145,12 @@ static int xlnx_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
 	case SNDRV_PCM_TRIGGER_START:
 	case SNDRV_PCM_TRIGGER_RESUME:
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-		writel(I2S_CORE_CTRL_ENABLE, drv_data->base + I2S_CORE_CTRL_OFFSET);
+		writel_print(I2S_CORE_CTRL_ENABLE, drv_data->base + I2S_CORE_CTRL_OFFSET);
 		break;
 	case SNDRV_PCM_TRIGGER_STOP:
 	case SNDRV_PCM_TRIGGER_SUSPEND:
 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-		writel(0, drv_data->base + I2S_CORE_CTRL_OFFSET);
+		writel_print(0, drv_data->base + I2S_CORE_CTRL_OFFSET);
 		break;
 	default:
 		return -EINVAL;

@@ -111,6 +111,7 @@ int asoc_simple_parse_daifmt(struct device *dev,
 	unsigned int daifmt;
 
 	daifmt = snd_soc_daifmt_parse_format(node, prefix);
+	pr_err("%s %d Got daifmt:%d\n", __func__, __LINE__, daifmt);
 
 	snd_soc_daifmt_parse_clock_provider_as_phandle(node, prefix, &bitclkmaster, &framemaster);
 	if (!bitclkmaster && !framemaster) {
@@ -129,8 +130,8 @@ int asoc_simple_parse_daifmt(struct device *dev,
 
 	of_node_put(bitclkmaster);
 	of_node_put(framemaster);
-
 	*retfmt = daifmt;
+	pr_err("%s %d Final retfmt:%d\n", __func__, __LINE__, *retfmt);
 
 	return 0;
 }

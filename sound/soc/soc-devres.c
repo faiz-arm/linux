@@ -122,6 +122,7 @@ int devm_snd_soc_register_card(struct device *dev, struct snd_soc_card *card)
 		pr_err("card->dai_link->platforms->name:%s\n", card->dai_link->platforms->name);
 		pr_err("card->dai_link->platforms->of_node:%p\n", card->dai_link->platforms->of_node);
 	}	
+	pr_err("card->dai_link->dai_fmt:%d\n", card->dai_link->dai_fmt);
 	ret = snd_soc_register_card(card);
 	if (ret == 0) {
 		*ptr = card;

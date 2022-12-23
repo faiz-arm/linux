@@ -464,6 +464,7 @@ static void cec_enamods(struct tda998x_priv *priv, u8 mods, bool enable)
 
 static void tda998x_cec_set_calibration(struct tda998x_priv *priv, bool enable)
 {
+	pr_err("%s\n", __func__);
 	if (enable) {
 		u8 val;
 
@@ -494,6 +495,7 @@ static void tda998x_cec_calibration(struct tda998x_priv *priv)
 {
 	struct gpio_desc *calib = priv->calib;
 
+	pr_err("%s\n", __func__);
 	mutex_lock(&priv->edid_mutex);
 	if (priv->hdmi->irq > 0)
 		disable_irq(priv->hdmi->irq);
@@ -518,6 +520,7 @@ static int tda998x_cec_hook_init(void *data)
 	struct tda998x_priv *priv = data;
 	struct gpio_desc *calib;
 
+	pr_err("%s\n", __func__);
 	calib = gpiod_get(&priv->hdmi->dev, "nxp,calib", GPIOD_ASIS);
 	if (IS_ERR(calib)) {
 		dev_warn(&priv->hdmi->dev, "failed to get calibration gpio: %ld\n",
@@ -534,6 +537,7 @@ static void tda998x_cec_hook_exit(void *data)
 {
 	struct tda998x_priv *priv = data;
 
+	pr_err("%s\n", __func__);
 	gpiod_put(priv->calib);
 	priv->calib = NULL;
 }
@@ -542,6 +546,7 @@ static int tda998x_cec_hook_open(void *data)
 {
 	struct tda998x_priv *priv = data;
 
+	pr_err("%s\n", __func__);
 	cec_enamods(priv, CEC_ENAMODS_EN_CEC_CLK | CEC_ENAMODS_EN_CEC, true);
 	tda998x_cec_calibration(priv);
 
@@ -552,12 +557,14 @@ static void tda998x_cec_hook_release(void *data)
 {
 	struct tda998x_priv *priv = data;
 
+	pr_err("%s\n", __func__);
 	cec_enamods(priv, CEC_ENAMODS_EN_CEC_CLK | CEC_ENAMODS_EN_CEC, false);
 }
 
 static int
 set_page(struct tda998x_priv *priv, u16 reg)
 {
+	pr_err("%s\n", __func__);
 	if (REG2PAGE(reg) != priv->current_page) {
 		struct i2c_client *client = priv->hdmi;
 		u8 buf[] = {
@@ -752,6 +759,7 @@ static void tda998x_edid_delay_done(struct timer_list *t)
 {
 	struct tda998x_priv *priv = from_timer(priv, t, edid_delay_timer);
 
+	pr_err("%s\n", __func__);
 	priv->edid_delay_active = false;
 	wake_up(&priv->edid_delay_waitq);
 	schedule_work(&priv->detect_work);
@@ -759,12 +767,14 @@ static void tda998x_edid_delay_done(struct timer_list *t)
 
 static void tda998x_edid_delay_start(struct tda998x_priv *priv)
 {
+	pr_err("%s\n", __func__);
 	priv->edid_delay_active = true;
 	mod_timer(&priv->edid_delay_timer, jiffies + HZ/10);
 }
 
 static int tda998x_edid_delay_wait(struct tda998x_priv *priv)
 {
+	pr_err("%s\n", __func__);
 	return wait_event_killable(priv->edid_delay_waitq, !priv->edid_delay_active);
 }
 
@@ -779,6 +789,7 @@ static void tda998x_detect_work(struct work_struct *work)
 		container_of(work, struct tda998x_priv, detect_work);
 	struct drm_device *dev = priv->connector.dev;
 
+	pr_err("%s\n", __func__);
 	if (dev)
 		drm_kms_helper_hotplug_event(dev);
 }
@@ -792,6 +803,7 @@ static irqreturn_t tda998x_irq_thread(int irq, void *data)
 	u8 sta, cec, lvl, flag0, flag1, flag2;
 	bool handled = false;
 
+	pr_err("%s\n", __func__);
 	sta = cec_read(priv, REG_CEC_INTSTATUS);
 	if (sta & CEC_INTSTATUS_HDMI) {
 		cec = cec_read(priv, REG_CEC_RXSHPDINT);
@@ -832,6 +844,7 @@ tda998x_write_if(struct tda998x_priv *priv, u8 bit, u16 addr,
 	u8 buf[MAX_WRITE_RANGE_BUF];
 	ssize_t len;
 
+	pr_err("%s\n", __func__);
 	len = hdmi_infoframe_pack(frame, buf, sizeof(buf));
 	if (len < 0) {
 		dev_err(&priv->hdmi->dev,
@@ -850,6 +863,7 @@ static void tda998x_write_aif(struct tda998x_priv *priv,
 {
 	union hdmi_infoframe frame;
 
+	pr_err("%s\n", __func__);
 	frame.audio = *cea;
 
 	tda998x_write_if(priv, DIP_IF_FLAGS_IF4, REG_IF4_HB0, &frame);
@@ -860,6 +874,7 @@ tda998x_write_avi(struct tda998x_priv *priv, const struct drm_display_mode *mode
 {
 	union hdmi_infoframe frame;
 
+	pr_err("%s\n", __func__);
 	drm_hdmi_avi_infoframe_from_display_mode(&frame.avi,
 						 &priv->connector, mode);
 	frame.avi.quantization_range = HDMI_QUANTIZATION_RANGE_FULL;
@@ -874,6 +889,7 @@ static void tda998x_write_vsi(struct tda998x_priv *priv,
 {
 	union hdmi_infoframe frame;
 
+	pr_err("%s\n", __func__);
 	if (drm_hdmi_vendor_infoframe_from_display_mode(&frame.vendor.hdmi,
 							&priv->connector,
 							mode))
@@ -902,6 +918,7 @@ static int tda998x_derive_routing(struct tda998x_priv *priv,
 				  struct tda998x_audio_settings *s,
 				  unsigned int route)
 {
+	pr_err("%s\n", __func__);
 	s->route = &tda998x_audio_route[route];
 	s->ena_ap = priv->audio_port_enable[route];
 	if (s->ena_ap == 0) {
@@ -927,6 +944,7 @@ static u8 tda998x_get_adiv(struct tda998x_priv *priv, unsigned int fs)
 	unsigned long ser_clk = priv->tmds_clock * 1000;
 	u8 adiv;
 
+	pr_err("%s\n", __func__);
 	for (adiv = AUDIO_DIV_SERCLK_32; adiv != AUDIO_DIV_SERCLK_1; adiv--)
 		if (ser_clk > min_audio_clk << adiv)
 			break;
@@ -966,6 +984,7 @@ static int tda998x_derive_cts_n(struct tda998x_priv *priv,
 				struct tda998x_audio_settings *settings,
 				unsigned int ratio)
 {
+	pr_err("%s\n", __func__);
 	switch (ratio) {
 	case 16:
 		settings->cts_n = CTS_N_M(3) | CTS_N_K(0);
@@ -992,6 +1011,7 @@ static int tda998x_derive_cts_n(struct tda998x_priv *priv,
 
 static void tda998x_audio_mute(struct tda998x_priv *priv, bool on)
 {
+	pr_err("%s\n", __func__);
 	if (on) {
 		reg_set(priv, REG_SOFTRESET, SOFTRESET_AUDIO);
 		reg_clear(priv, REG_SOFTRESET, SOFTRESET_AUDIO);
@@ -1007,6 +1027,7 @@ static void tda998x_configure_audio(struct tda998x_priv *priv)
 	u8 buf[6], adiv;
 	u32 n;
 
+	pr_err("%s\n", __func__);
 	/* If audio is not configured, there is nothing to do. */
 	if (settings->ena_ap == 0)
 		return;
@@ -1073,6 +1094,8 @@ static int tda998x_audio_hw_params(struct device *dev, void *data,
 		.cea = params->cea,
 	};
 
+	pr_err("%s daifmt->fmt:%d\n", __func__, daifmt->fmt);
+	WARN_ON(1);
 	memcpy(audio.status, params->iec.status,
 	       min(sizeof(audio.status), sizeof(params->iec.status)));
 
@@ -1126,6 +1149,7 @@ static void tda998x_audio_shutdown(struct device *dev, void *data)
 {
 	struct tda998x_priv *priv = dev_get_drvdata(dev);
 
+	pr_err("%s\n", __func__);
 	mutex_lock(&priv->audio_mutex);
 
 	reg_write(priv, REG_ENA_AP, 0);
@@ -1139,6 +1163,7 @@ static int tda998x_audio_mute_stream(struct device *dev, void *data,
 {
 	struct tda998x_priv *priv = dev_get_drvdata(dev);
 
+	pr_err("%s\n", __func__);
 	mutex_lock(&priv->audio_mutex);
 
 	tda998x_audio_mute(priv, enable);
@@ -1152,6 +1177,7 @@ static int tda998x_audio_get_eld(struct device *dev, void *data,
 {
 	struct tda998x_priv *priv = dev_get_drvdata(dev);
 
+	pr_err("%s\n", __func__);
 	mutex_lock(&priv->audio_mutex);
 	memcpy(buf, priv->connector.eld,
 	       min(sizeof(priv->connector.eld), len));
@@ -1176,6 +1202,7 @@ static int tda998x_audio_codec_init(struct tda998x_priv *priv,
 		.max_i2s_channels = 2,
 	};
 
+	pr_err("%s\n", __func__);
 	if (priv->audio_port_enable[AUDIO_ROUTE_I2S])
 		codec_data.i2s = 1;
 	if (priv->audio_port_enable[AUDIO_ROUTE_SPDIF])
@@ -1196,12 +1223,14 @@ tda998x_connector_detect(struct drm_connector *connector, bool force)
 	struct tda998x_priv *priv = conn_to_tda998x_priv(connector);
 	u8 val = cec_read(priv, REG_CEC_RXSHPDLEV);
 
+	pr_err("%s\n", __func__);
 	return (val & CEC_RXSHPDLEV_HPD) ? connector_status_connected :
 			connector_status_disconnected;
 }
 
 static void tda998x_connector_destroy(struct drm_connector *connector)
 {
+	pr_err("%s\n", __func__);
 	drm_connector_cleanup(connector);
 }
 
@@ -1220,6 +1249,7 @@ static int read_edid_block(void *data, u8 *buf, unsigned int blk, size_t length)
 	u8 offset, segptr;
 	int ret, i;
 
+	pr_err("%s\n", __func__);
 	offset = (blk & 1) ? 128 : 0;
 	segptr = blk / 2;
 
@@ -1289,6 +1319,7 @@ static int tda998x_connector_get_modes(struct drm_connector *connector)
 	 * no modes found: we are not in a restartable path, so we
 	 * can't handle signals gracefully.
 	 */
+	pr_err("%s\n", __func__);
 	if (tda998x_edid_delay_wait(priv))
 		return 0;
 
@@ -1323,6 +1354,7 @@ tda998x_connector_best_encoder(struct drm_connector *connector)
 {
 	struct tda998x_priv *priv = conn_to_tda998x_priv(connector);
 
+	pr_err("%s\n", __func__);
 	return priv->bridge.encoder;
 }
 
@@ -1338,6 +1370,7 @@ static int tda998x_connector_init(struct tda998x_priv *priv,
 	struct drm_connector *connector = &priv->connector;
 	int ret;
 
+	pr_err("%s\n", __func__);
 	connector->interlace_allowed = 1;
 
 	if (priv->hdmi->irq)
@@ -1365,6 +1398,7 @@ static int tda998x_bridge_attach(struct drm_bridge *bridge,
 {
 	struct tda998x_priv *priv = bridge_to_tda998x_priv(bridge);
 
+	pr_err("%s\n", __func__);
 	if (flags & DRM_BRIDGE_ATTACH_NO_CONNECTOR) {
 		DRM_ERROR("Fix bridge driver to make connector optional!");
 		return -EINVAL;
@@ -1377,6 +1411,7 @@ static void tda998x_bridge_detach(struct drm_bridge *bridge)
 {
 	struct tda998x_priv *priv = bridge_to_tda998x_priv(bridge);
 
+	pr_err("%s\n", __func__);
 	drm_connector_cleanup(&priv->connector);
 }
 
@@ -1387,6 +1422,7 @@ static enum drm_mode_status tda998x_bridge_mode_valid(struct drm_bridge *bridge,
 	/* TDA19988 dotclock can go up to 165MHz */
 	struct tda998x_priv *priv = bridge_to_tda998x_priv(bridge);
 
+	pr_err("%s\n", __func__);
 	if (mode->clock > ((priv->rev == TDA19988) ? 165000 : 150000))
 		return MODE_CLOCK_HIGH;
 	if (mode->htotal >= BIT(13))
@@ -1400,6 +1436,7 @@ static void tda998x_bridge_enable(struct drm_bridge *bridge)
 {
 	struct tda998x_priv *priv = bridge_to_tda998x_priv(bridge);
 
+	pr_err("%s\n", __func__);
 	if (!priv->is_on) {
 		/* enable video ports, audio will be enabled later */
 		reg_write(priv, REG_ENA_VP_0, 0xff);
@@ -1418,6 +1455,7 @@ static void tda998x_bridge_disable(struct drm_bridge *bridge)
 {
 	struct tda998x_priv *priv = bridge_to_tda998x_priv(bridge);
 
+	pr_err("%s\n", __func__);
 	if (priv->is_on) {
 		/* disable video ports */
 		reg_write(priv, REG_ENA_VP_0, 0x00);
@@ -1448,6 +1486,7 @@ static void tda998x_bridge_mode_set(struct drm_bridge *bridge,
 	 * full-range RGB.  If the monitor supports full-range, then use
 	 * it, otherwise reduce to limited-range.
 	 */
+	pr_err("%s\n", __func__);
 	priv->rgb_quant_range =
 		priv->connector.display_info.rgb_quant_range_selectable ?
 		HDMI_QUANTIZATION_RANGE_FULL :
@@ -1695,6 +1734,7 @@ static int tda998x_get_audio_ports(struct tda998x_priv *priv,
 	u32 size;
 	int i;
 
+	pr_err("%s\n", __func__);
 	port_data = of_get_property(np, "audio-ports", &size);
 	if (!port_data)
 		return 0;
@@ -1759,6 +1799,7 @@ static int tda998x_set_config(struct tda998x_priv *priv,
 			    VIP_CNTRL_2_SWAP_F(p->swap_f) |
 			    (p->mirr_f ? VIP_CNTRL_2_MIRR_F : 0);
 
+	pr_err("%s\n", __func__);
 	if (p->audio_params.format != AFMT_UNUSED) {
 		unsigned int ratio, route;
 		bool spdif = p->audio_params.format == AFMT_SPDIF;
@@ -1785,6 +1826,7 @@ static void tda998x_destroy(struct device *dev)
 {
 	struct tda998x_priv *priv = dev_get_drvdata(dev);
 
+	pr_err("%s\n", __func__);
 	drm_bridge_remove(&priv->bridge);
 
 	/* disable all IRQs and free the IRQ handler */
@@ -1814,6 +1856,7 @@ static int tda998x_create(struct device *dev)
 	u32 video;
 	int rev_lo, rev_hi, ret;
 
+	pr_err("%s\n", __func__);
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
@@ -2008,6 +2051,7 @@ static int tda998x_encoder_init(struct device *dev, struct drm_device *drm)
 	u32 crtcs = 0;
 	int ret;
 
+	pr_err("%s\n", __func__);
 	if (dev->of_node)
 		crtcs = drm_of_find_possible_crtcs(drm, dev->of_node);
 
@@ -2040,6 +2084,7 @@ static int tda998x_bind(struct device *dev, struct device *master, void *data)
 {
 	struct drm_device *drm = data;
 
+	pr_err("%s\n", __func__);
 	return tda998x_encoder_init(dev, drm);
 }
 
@@ -2048,6 +2093,7 @@ static void tda998x_unbind(struct device *dev, struct device *master,
 {
 	struct tda998x_priv *priv = dev_get_drvdata(dev);
 
+	pr_err("%s\n", __func__);
 	drm_encoder_cleanup(&priv->encoder);
 }
 
@@ -2061,6 +2107,7 @@ tda998x_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 	int ret;
 
+	pr_err("%s\n", __func__);
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		dev_warn(&client->dev, "adapter does not support I2C\n");
 		return -EIO;
@@ -2078,6 +2125,7 @@ tda998x_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 static void tda998x_remove(struct i2c_client *client)
 {
+	pr_err("%s\n", __func__);
 	component_del(&client->dev, &tda998x_ops);
 	tda998x_destroy(&client->dev);
 }
